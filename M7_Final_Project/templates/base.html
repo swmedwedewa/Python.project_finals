@@ -1,0 +1,22 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+    <meta charset="UTF-8">
+    <title>Глобальное потепление: решения</title>
+    <link rel="stylesheet" href="{{ url_for('static', filename='css/style.css') }}">
+</head>
+<body>
+    <header>
+        <h1>Борьба с глобальным потеплением</h1>
+        <nav>
+            <a href="/">Главная</a>
+        </nav>
+    </header>
+    <main>
+        {% block content %}{% endblock %}
+    </main>
+    <footer>
+        <p>Проект о решениях климатических проблем • созданно под рукаводством М.И.Р.</p>
+    </footer>
+</body>
+</html>

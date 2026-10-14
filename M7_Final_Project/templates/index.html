@@ -1,0 +1,22 @@
+{% extends "base.html" %}
+
+{% block content %}
+<h2>Категории решений</h2>
+<div class="cards">
+  <a href="/category/energy" class="card">
+    <img src="{{ url_for('static', filename='image/sun.jpg') }}" alt="Солнечная энергия">
+    <h3>Возобновляемая энергетика</h3>
+    <p>Чистая энергия для устойчивого будущего.</p>
+  </a>
+  <a href="/category/transport" class="card">
+    <img src="{{ url_for('static', filename='image/autobus.jpg') }}" alt="Экологичный транспорт">
+    <h3>Транспорт и мобильность</h3>
+    <p>Снижение выбросов и развитие зелёной мобильности.</p>
+  </a>
+  <a href="/category/forest" class="card">
+    <img src="{{ url_for('static', filename='image/tree.jpg') }}" alt="Леса и природа">
+    <h3>Леса и природа</h3>
+    <p>Сохранение экосистем и восстановление лесов.</p>
+  </a>
+</div>
+{% endblock %}

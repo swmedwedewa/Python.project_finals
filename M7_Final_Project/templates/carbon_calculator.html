@@ -1,0 +1,339 @@
+<!DOCTYPE html>
+<html lang="ru">
+<head>
+  <link rel="icon" href="{{ url_for('static', filename='earch.png') }}" type="image/x-icon">
+  <meta charset="UTF-8">
+  <title>Калькулятор углеродного следа</title>
+  <style>
+    :root {
+      --bg-body: #f6fbf7;
+      --card-bg: #ffffff;
+      --text-main: #2d3a32;
+      --text-muted: #6b7a6f;
+      --accent-green: #4a9a58;
+      --accent-blue: #4f8ea1;
+      --shadow: 0 4px 12px rgba(45, 58, 50, 0.06);
+    }
+
+    body {
+      font-family: system-ui, -apple-system, Segoe UI, Roboto, Helvetica, Arial, sans-serif;
+      margin: 0;
+      padding: 0;
+      background-color: var(--bg-body);
+      color: var(--text-main);
+      line-height: 1.6;
+    }
+
+    header {
+      background: rgba(255, 255, 255, 0.9);
+      backdrop-filter: blur(10px);
+      padding: 1rem 2rem;
+      border-bottom: 1px solid rgba(74, 154, 88, 0.15);
+      position: sticky;
+      top: 0;
+      z-index: 100;
+    }
+
+    h1 {
+      margin: 0;
+      font-size: 1.5rem;
+      color: var(--text-main);
+    }
+
+    nav a {
+      color: var(--accent-green);
+      text-decoration: none;
+      margin-right: 1.25rem;
+      font-weight: 500;
+    }
+
+    nav a:hover {
+      text-decoration: underline;
+    }
+
+    main {
+      max-width: 1100px;
+      margin: 2rem auto;
+      padding: 0 1.5rem;
+    }
+
+    .calc-card {
+      background: var(--card-bg);
+      border-radius: 16px;
+      padding: 2.5rem;
+      box-shadow: var(--shadow);
+      border: 1px solid rgba(74, 154, 88, 0.08);
+    }
+
+    .calc-header {
+      margin-bottom: 2rem;
+    }
+
+    .calc-header h2 {
+      margin: 0 0 0.5rem 0;
+      color: var(--text-main);
+      font-size: 1.4rem;
+    }
+
+    .hint {
+      color: var(--text-muted);
+      font-size: 0.9rem;
+      margin: 0;
+    }
+
+    form {
+      display: grid;
+      grid-template-columns: 1fr 1fr;
+      gap: 1.5rem;
+    }
+
+    @media (max-width: 768px) {
+      form {
+        grid-template-columns: 1fr;
+      }
+    }
+
+    .row {
+      display: flex;
+      flex-direction: column;
+      gap: 0.4rem;
+    }
+
+    label {
+      font-size: 0.95rem;
+      color: var(--text-main);
+      font-weight: 500;
+    }
+
+    input[type="number"] {
+      padding: 10px 12px;
+      border: 1px solid rgba(45, 58, 50, 0.12);
+      border-radius: 8px;
+      background: #fafafa;
+      color: var(--text-main);
+      font-size: 1rem;
+      transition: border-color 0.2s;
+    }
+
+    input[type="number"]:focus {
+      outline: none;
+      border-color: var(--accent-green);
+    }
+
+    button.calc-btn {
+      grid-column: 1 / -1; /* на всю ширину сетки */
+      margin-top: 1.5rem;
+      padding: 14px;
+      background: var(--accent-green);
+      color: white;
+      border: none;
+      border-radius: 8px;
+      font-size: 1rem;
+      font-weight: 600;
+      cursor: pointer;
+      transition: background 0.2s, transform 0.1s;
+    }
+
+    button.calc-btn:hover {
+      background: #3b7d45;
+    }
+
+    button.calc-btn:active {
+      transform: scale(0.98);
+    }
+
+    .result-box {
+      margin-top: 2.5rem;
+      padding: 2rem;
+      background: rgba(74, 154, 88, 0.04);
+      border-radius: 12px;
+      border-left: 5px solid var(--accent-green);
+      display: none; /* скрыто по умолчанию */
+    }
+
+    .big-num {
+      font-size: 2rem;
+      font-weight: 700;
+      color: var(--text-main);
+      margin: 0.5rem 0;
+    }
+
+    .level-badge {
+      display: inline-block;
+      padding: 4px 10px;
+      border-radius: 20px;
+      font-size: 0.85rem;
+      font-weight: 600;
+      margin-top: 0.75rem;
+    }
+
+    .low { background: rgba(74, 154, 88, 0.15); color: var(--accent-green); }
+    .mid { background: rgba(79, 142, 161, 0.15); color: var(--accent-blue); }
+    .high { background: rgba(67, 49, 49, 0.1); color: #5a3b3b; }
+
+    .error-box {
+      margin-top: 2.5rem;
+      padding: 1.5rem;
+      background: #fff4f4;
+      border: 1px solid #eccbcb;
+      border-radius: 12px;
+      display: none;
+      color: #5a3b3b;
+    }
+
+    footer {
+      text-align: center;
+      padding: 2.5rem 1rem;
+      color: var(--text-muted);
+      font-size: 0.9rem;
+    }
+
+    .back-link {
+      display: inline-block;
+      margin-top: 1.5rem;
+      color: var(--accent-green);
+      text-decoration: none;
+      font-weight: 500;
+    }
+
+    .back-link:hover {
+      text-decoration: underline;
+    }
+  </style>
+</head>
+<body>
+  <header>
+    <nav>
+      <a href="/">Главная</a>
+      <!-- сюда можно добавить другие пункты -->
+    </nav>
+  </header>
+
+  <main>
+    <div class="calc-card">
+      <div class="calc-header">
+        <h2>Калькулятор углеродного следа</h2>
+        <p class="hint">Введите примерные значения за месяц — мы посчитаем годовой след.</p>
+      </div>
+
+      <form id="calcForm">
+        <!-- Строки 1-2: электричество и газ -->
+        <div class="row">
+          <label>Электричество (кВт·ч/мес)</label>
+          <input type="number" name="electricity_kwh" value="200" min="0">
+        </div>
+        <div class="row">
+          <label>Газ (м³/мес)</label>
+          <input type="number" name="gas_m3" value="10" min="0">
+        </div>
+
+        <!-- Строки 3-4: бензин и авиабилеты -->
+        <div class="row">
+          <label>Бензин (л/мес)</label>
+          <input type="number" name="petrol_l" value="40" min="0">
+        </div>
+        <div class="row">
+          <label>Авиаперелёты (км/мес)</label>
+          <input type="number" name="flight_km" value="0" min="0">
+        </div>
+
+        <!-- Мясо и овощи: сетка 2 колонки -->
+        <div class="row" style="grid-column: span 2;">
+          <div style="display: grid; grid-template-columns: 1fr 1fr; gap: 1rem;">
+            <div>
+              <label>Говядина (кг/мес)</label>
+              <input type="number" name="meat_beef_kg" value="2" min="0">
+            </div>
+            <div>
+              <label>Курица (кг/мес)</label>
+              <input type="number" name="meat_chicken_kg" value="3" min="0">
+            </div>
+          </div>
+        </div>
+        <div class="row" style="grid-column: span 2;">
+          <label>Овощи (кг/мес)</label>
+          <input type="number" name="veg_kg" value="15" min="0">
+        </div>
+
+        <button type="submit" class="calc-btn">Посчитать след</button>
+      </form>
+
+      <!-- Блок результата -->
+      <div id="resultBlock" class="result-box">
+        <h3>Ваш след за год</h3>
+        <p>Вы выбрасываете примерно</p>
+        <div class="big-num"><span id="co2Tons">0</span> т CO₂</div>
+        <p>Это эквивалентно <span id="treesCount">0</span> деревьям в год.</p>
+        <span id="levelBadge" class="level-badge"></span>
+        <p style="margin-top:1rem; font-size:0.95rem;" id="levelMessage"></p>
+      </div>
+
+      <!-- Блок ошибки -->
+      <div id="errorBlock" class="error-box">
+        <strong>Не удалось посчитать след</strong>
+        <p id="errorMessage" style="margin:0.5rem 0 0 0;"></p>
+      </div>
+    </div>
+  </main>
+
+  <footer>
+    Проект о решениях климатических проблем • созданно под рукаводством М.И.Р.
+  </footer>
+
+  <script>
+    document.getElementById('calcForm').addEventListener('submit', async (e) => {
+      e.preventDefault();
+      const form = e.target;
+      const data = new FormData(form);
+      const payload = Object.fromEntries(data.entries());
+
+      // Сброс блоков
+      document.getElementById('resultBlock').style.display = 'none';
+      document.getElementById('errorBlock').style.display = 'none';
+
+      try {
+        const res = await fetch('/api/carbon-calculator', {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/x-www-form-urlencoded' },
+          body: new URLSearchParams(payload).toString(),
+        });
+
+        const json = await res.json();
+
+        if (res.ok) {
+          document.getElementById('resultBlock').style.display = 'block';
+          document.getElementById('co2Tons').textContent = json.co2_tons;
+          document.getElementById('treesCount').textContent = json.trees_equivalent;
+
+          const badge = document.getElementById('levelBadge');
+          const msgEl = document.getElementById('levelMessage');
+
+          badge.textContent = '';
+          msgEl.textContent = json.message;
+
+          // Цвет бейджа по уровню
+          badge.className = 'level-badge';
+          if (json.level === 'низкий') {
+            badge.classList.add('low');
+            badge.textContent = 'Низкий уровень воздействия';
+          } else if (json.level === 'средний') {
+            badge.classList.add('mid');
+            badge.textContent = 'Средний уровень воздействия';
+          } else {
+            badge.classList.add('high');
+            badge.textContent = 'Высокий уровень воздействия';
+          }
+        } else {
+          throw new Error(json.error || 'Ошибка сервера');
+        }
+      } catch (err) {
+        console.error(err);
+        const errorBlock = document.getElementById('errorBlock');
+        const msgEl = document.getElementById('errorMessage');
+        errorBlock.style.display = 'block';
+        msgEl.textContent = err.message || 'Произошла ошибка. Проверьте консоль.';
+      }
+    });
+  </script>
+</body>
+</html>
